@@ -1,6 +1,9 @@
 <?php
 
+
 namespace App\Http\Controllers;
+
+use App\Models\Post;
 
 use Illuminate\Http\Request;
 
@@ -23,10 +26,10 @@ class PostController extends Controller
     public function index(): View
     {
         //get posts
-        Post::latest()->paginate(5);
+        $posts = Post::latest()->paginate(5);
 
         //render view with posts
-        return view('index', compact('posts'));
+        return view('posts.index', compact('posts'));
     }
 
     /**
@@ -36,7 +39,7 @@ class PostController extends Controller
      */
     public function create(): View
     {
-        return view('create');
+    return view('posts.create');
     }
  
     /**
@@ -45,28 +48,28 @@ class PostController extends Controller
      * @param  mixed $request
      * @return RedirectResponse
      */
-    public function store($request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        //validate form
-        $this->validate($request, [
-            'image'     => 'required|image|mimes:jpeg,jpg,png|max:2048',
-            'title'     => 'required|min:5',
-            'content'   => 'required|min:10'
-        ]);
+    //validate form
+    $this->validate($request, [
+        'image'     => 'required|image|mimes:jpeg,jpg,png|max:2048',
+        'title'     => 'required|min:5',
+        'content'   => 'required|min:10'
+    ]);
 
-        //upload image
-        $image = $request->file('image');
-        $image->storeAs('public/posts', $image->hashName());
+    //upload image
+    $image = $request->file('image');
+    $image->storeAs('public/posts', $image->hashName());
 
-        //create post
-        Post::create([
-            'image'     => $image->hashName(),
-            'title'     => $request->title,
-            'content'   => $request->content
-        ]);
+    //create post
+    Post::create([
+        'image'     => $image->hashName(),
+        'title'     => $request->title,
+        'content'   => $request->content
+    ]);
 
-        //redirect to index
-        return redirect()->route('posts.index')->with(['success' => 'Data Berhasil Disimpan!']);
+    //redirect to index
+    return redirect()->route('posts.index')->with(['success' => 'Data Berhasil Disimpan!']);
     }
     
     /**
@@ -154,18 +157,18 @@ class PostController extends Controller
      * @param  mixed $post
      * @return void
      */
-    public function destroy($post): RedirectResponse
+    public function destroy($id): RedirectResponse
     {
         //get post by ID
-        $post = Post::findOrFail();
-
+        $post = Post::findOrFail($id);
+    
         //delete image
         Storage::delete('public/posts/'. $post->image);
-
+    
         //delete post
         $post->delete();
-
+    
         //redirect to index
         return redirect()->route('posts.index')->with(['success' => 'Data Berhasil Dihapus!']);
-    }
+    }    
 }
